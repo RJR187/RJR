@@ -1,0 +1,47 @@
+import streamlit as st
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+
+# Steuerarten und Werte (Beispiel)
+steuerarten = {
+    "Einkommensteuer": {"satz": 0.14, "grenze": 11604},
+    "Lohnsteuer": {"satz": 0.14, "grenze": 11604},
+    "Soli-Zuschlag": {"satz": 0.055, "grenze": 17000},
+    "Kirchensteuer": {"satz": 0.09, "grenze": 0},
+    "Körperschaftsteuer": {"satz": 0.15, "grenze": 0},
+    # Füge hier weitere Steuerarten hinzu
+}
+
+# Titel der App
+st.title("Steuerrechner Deutschland")
+
+# Benutzerinput
+einkommen = st.number_input("Einkommen (in €)", min_value=0)
+
+# Berechnungen
+steuerschuld = {}
+for steuer, daten in steuerarten.items():
+    if einkommen >= daten["grenze"]:
+        steuerschuld[steuer] = einkommen * daten["satz"]
+
+# Anzeige der Steuerberechnung
+st.subheader("Berechnete Steuern")
+steuer_df = pd.DataFrame(steuerschuld.items(), columns=["Steuerart", "Betrag (€)"])
+st.write(steuer_df)
+
+# Diagramm
+fig, ax = plt.subplots()
+ax.bar(steuer_df["Steuerart"], steuer_df["Betrag (€)"], color='skyblue')
+ax.set_xlabel("Steuerart")
+ax.set_ylabel("Betrag (€)")
+ax.set_title("Steuerlast nach Steuerarten")
+st.pyplot(fig)
+
+# Export-Funktion: CSV und Excel
+st.subheader("Daten Exportieren")
+export_option = st.selectbox("Wählen Sie ein Format", ["CSV", "Excel"])
+if export_option == "CSV":
+    st.download_button("CSV herunterladen", steuer_df.to_csv(index=False), "steuerrechner.csv", "text/csv")
+elif export_option == "Excel":
+    st.download_button("Excel herunterladen", steuer_df.to_excel(index=False), "steuerrechner.xlsx", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
